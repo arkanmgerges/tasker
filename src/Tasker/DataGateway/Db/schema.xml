@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database name="default" defaultIdMethod="native" defaultPhpNamingMethod="underscore" namespace="Tasker\DataGateway\Db\Entity" tablePrefix="tasker_">
+  <table name="lock" idMethod="native" phpName="Lock">
+      <column name="id" phpName="Id"  type="VARCHAR" size="65" primaryKey="true" required="true"/>
+      <column name="creatingDateTime" phpName="CreatingDateTime" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
+      <vendor type="mysql">
+        <parameter name="Engine" value="InnoDB"/>
+      </vendor>
+  </table>
+  <table name="task" idMethod="native" phpName="Task">
+      <column name="id" phpName="Id" type="INTEGER" sqlType="int(11) unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+      <column name="server" phpName="Server" type="VARCHAR" size="45" required="true" defaultValue="NULL"/>
+      <column name="statusId" phpName="StatusId" type="TINYINT" required="true" defaultValue="0"/>
+      <column name="typeId" phpName="TypeId" type="TINYINT" required="true" defaultValue="1"/>
+      <column name="creatingDateTime" phpName="CreatingDateTime" type="TIMESTAMP" required="true" defaultValue="NULL"/>
+      <column name="repeatingInterval" phpName="RepeatingInterval" type="INTEGER" sqlType="int(11) unsigned" required="true" defaultValue="0"/>
+      <column name="startingDateTime" phpName="StartingDateTime" type="TIMESTAMP" required="true" defaultValue="NULL"/>
+      <column name="endingDateTime" phpName="EndingDateTime" type="TIMESTAMP" required="true" defaultValue="NULL"/>
+      <column name="priority" phpName="Priority" type="SMALLINT" sqlType="unsigned" required="true" defaultValue="0"/>
+
+      <column name="externalTypeId" phpName="ExternalTypeId" type="SMALLINT" sqlType="unsigned" required="true" defaultValue="NULL"/>
+      <column name="externalId" phpName="ExternalId" type="INTEGER" sqlType="int(11) unsigned" required="true" defaultValue="NULL"/>
+      <column name="externalData" phpName="ExternalData" type="VARCHAR" size="16000000" required="true" defaultValue=""/>
+
+
+      <index name="server_idx">
+        <index-column name="server"/>
+      </index>
+      <index name="repeatingInterval_idx">
+          <index-column name="repeatingInterval"/>
+      </index>
+      <index name="startingDateTime_idx">
+        <index-column name="startingDateTime"/>
+      </index>
+      <index name="statusId_idx">
+          <index-column name="statusId"/>
+      </index>
+      <index name="priority_idx">
+          <index-column name="priority"/>
+      </index>
+      <index name="externalId_idx">
+          <index-column name="externalId"/>
+      </index>
+      <index name="externalTypeId_idx">
+          <index-column name="externalTypeId"/>
+      </index>
+      <vendor type="mysql">
+        <parameter name="Engine" value="InnoDB"/>
+      </vendor>
+  </table>
+  <table name="process" idMethod="native" phpName="Process">
+      <column name="id" phpName="Id" type="INTEGER" sqlType="unsigned" required="true" primaryKey="true"/>
+      <column name="server" phpName="Server" type="VARCHAR" size="45" required="true" defaultValue="NULL"/>
+      <column name="extra" phpName="extra" type="VARCHAR" size="20" required="true" defaultValue="NULL"/>
+      <column name="creatingDateTime" phpName="CreatingDateTime" type="TIMESTAMP" required="true" defaultValue="0000-00-00 00:00:00"/>
+      <index name="extra_idx">
+          <index-column name="extra"/>
+      </index>
+      <index name="creatingDateTime_idx">
+          <index-column name="creatingDateTime"/>
+      </index>
+      <vendor type="mysql">
+          <parameter name="Engine" value="InnoDB"/>
+      </vendor>
+  </table>
+</database>

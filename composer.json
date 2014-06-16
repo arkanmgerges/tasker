@@ -1,0 +1,31 @@
+{
+    "name": "arkanmgerges/tasker",
+    "type": "library",
+    "description": "Run parallel tasks to be executed",
+    "keywords": ["tasker", "running parallel tasks"],
+    "homepage": "https://github.com/arkanmgerges/tasker",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Arkan M. Gerges",
+            "email": "arkan.m.gerges@gmail.com",
+            "homepage": "http://arkan.pro",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "arkanmgerges/multi-tier-architecture" : "1.0.0",
+        "propel/propel": "2.0.0-alpha3",
+        "monolog/monolog": "1.10.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.0.*@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tasker\\": "src/Tasker",
+            "Test\\Tasker\\": "tests/Tasker"
+        }
+    }
+}

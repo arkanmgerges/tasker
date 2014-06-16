@@ -1,0 +1,5 @@
+phpunit.xml
+.idea
+vendor
+config.php
+src/Tasker/log
