@@ -48,7 +48,7 @@ class Arrange implements ArrangeInterface
             $response = $this->createLock($lockId);
             // 1.2 If it could not lock, then exit
             if (in_array(23000, $response->getCodes()) || $response->getStatus() == Response::STATUS_FAIL) {
-                return;
+                return false;
             }
             // 1.3 Verify if there is another record that has the same type, id
             $response = $this->retrieveTask($arrangePacket->getExternalId(), $arrangePacket->getExternalTypeId());
@@ -59,16 +59,17 @@ class Arrange implements ArrangeInterface
             ) {
                 // 1.4.1 Delete the lock and return
                 $this->deleteLock($lockId);
-                return;
+                return false;
             }
             // 1.5 If there is no other record, then create a new task record
-            $this->createTask($arrangePacket);
+            $isSucceed = $this->createTask($arrangePacket);
             // 1.6 Delete the lock record
             $this->deleteLock($lockId);
+            return $isSucceed;
         }
         else {
             // 2. If the mode is repeatable, then create the task
-            $this->createTask($arrangePacket);
+            return $this->createTask($arrangePacket);
         }
     }
 
@@ -84,11 +85,16 @@ class Arrange implements ArrangeInterface
                 'creatingDateTime' => date('Y-m-d H:i:s')
             ]
         );
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
             'task|create',
             $request,
             $this->getMaxRetries()
         );
+
+        if ($status == Response::STATUS_FAIL) {
+            return false;
+        }
+        return true;
     }
 
     private function deleteLock($lockId)

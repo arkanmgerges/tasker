@@ -181,10 +181,11 @@ class Act implements CommandInterface
             $this->getMaxRetries()
         );
         if ($status == Response::STATUS_FAIL) {
-            return;
+            return false;
         }
         // Update the current task
         $this->currentTask->setTypeId($actPacket->getTypeId());
+        return true;
     }
 
     private function updateTaskStatusAndStartingDateTimeInCaseOfRecurringTypeById($id, $statusId)

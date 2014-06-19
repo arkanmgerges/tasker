@@ -20,6 +20,6 @@ class Action
 
     public function updateTask(ActPacket $actPacket)
     {
-        $this->actTask->updateTask($actPacket);
+        return $this->actTask->updateTask($actPacket);
     }
 } 
