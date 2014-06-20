@@ -14,7 +14,7 @@ class AssignTest extends BaseClass
         //$this->cleanAndPopulateDatabase();
 
         $manager = new AssignManager();
-        $manager->setMaxProcesses(2);
+        $manager->setMaxProcesses(30);
         $manager->setConfigPath(__DIR__ . '/../Misc/config.php');
         $manager->setEnvironmentVariable('APP_ENV');
         $manager->run();

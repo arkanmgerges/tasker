@@ -13,7 +13,8 @@ class ActCallback implements ActCallbackInterface
         $id = $dataContainer->getExternalId();
         $id++;
         $dataContainer->setExternalId($id);
-        $action->updateTask($dataContainer);
-        echo PHP_EOL . 'processing data with id ' . $id . PHP_EOL;
+        if ($action->updateTask($dataContainer)) {
+            $action->endTask();
+        }
     }
 }

@@ -136,7 +136,7 @@ class Arrange implements ArrangeInterface
     private function retrieveTask($id, $type)
     {
         $response = $this->runUseCaseAndReturnResponse(
-            'task|retrieve',
+            'task|retrieveOneUnEnded',
             new Request(
                 [
                     'externalId' => $id,

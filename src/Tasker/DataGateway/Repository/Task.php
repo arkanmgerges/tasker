@@ -11,6 +11,8 @@ use Tasker\DataGateway\Repository\Definition\DbAbstract;
 use Tasker\DataGateway\Exception\EmptyArray;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
+use Tasker\Entity\Task as TaskEntity;
+use Tasker\Manager\Act;
 
 /**
  * This class is used to represent task repository data gateway
@@ -22,6 +24,9 @@ use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
  */
 class Task extends DbAbstract implements TaskRepositoryInterface
 {
+    /** @var array  $totalResultCountMethodToBeCalled */
+    private $totalResultCountMethodToBeCalled = [];
+
     /**
      * Create a new task into the data gateway
      *
@@ -52,6 +57,51 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         $this->setEntitiesFromResponse($mapper->getMappedFirstEntities());
     }
 
+    public function retrieveOneToProcess(Request $request)
+    {
+        $data = $request->getData();
+        $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
+               Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
+               'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
+               'AND ((statusId != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
+               'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
+               'AND (server IS NOT NULL) ORDER BY priority DESC, modifyingDateTime '.
+               'LIMIT '. $data[Request::EXTRA_OFFSET] .',1;';
+        $this->processQueryAndSetEntities($sql);
+        $this->totalResultCountMethodToBeCalled = ['getTotalResultCountForRetrieveOneToProcess', []];
+        return;
+    }
+
+    public function retrieveOneUnEnded(Request $request)
+    {
+        $data = $request->getData();
+        $sql = 'SELECT * FROM :table1: WHERE (statusId != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+               '(externalId = ' . $data['externalId'] . ') AND (externalTypeId = ' . $data['externalTypeId'] . ') ' .
+               'LIMIT 1;';
+        $this->processQueryAndSetEntities($sql);
+        $this->totalResultCountMethodToBeCalled = ['getTotalResultCountForRetrieveOneUnEnded', $data];
+        return;
+    }
+
+    private function getTotalResultCountForRetrieveOneUnEnded($params)
+    {
+        $sql = 'SELECT * FROM :table1: WHERE (statusId != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+            '(externalId = ' . $params['externalId'] . ') AND (externalTypeId = ' . $params['externalTypeId'] . ') ' .
+            'LIMIT 1;';
+        return $this->getTotalResultCountBySql($sql);
+    }
+
+    private function getTotalResultCountForRetrieveOneToProcess()
+    {
+        $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
+               Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
+               'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
+               'AND ((statusId != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
+               'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
+               'AND (server IS NOT NULL);';
+        return $this->getTotalResultCountBySql($sql);
+    }
+
     /**
      * Retrieve task from db
      *
@@ -62,10 +112,6 @@ class Task extends DbAbstract implements TaskRepositoryInterface
     public function retrieve(Request $request)
     {
         $requestDataArray = $request->getData();
-        if (isset($requestDataArray['sql'])) {
-            $this->processQueryAndSetEntities($requestDataArray);
-            return;
-        }
         /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($requestDataArray);
@@ -114,13 +160,19 @@ class Task extends DbAbstract implements TaskRepositoryInterface
      */
     public function getTotalResultCount(Request $request)
     {
+        if (!empty($this->totalResultCountMethodToBeCalled)) {
+            $method = $this->totalResultCountMethodToBeCalled[0];
+            $params = $this->totalResultCountMethodToBeCalled[1];
+            if (!empty($params)) {
+                return $this->$method($params);
+            }
+            else {
+                return $this->$method();
+            }
+        }
         /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $requestDataArray = $request->getData();
-        if (isset($requestDataArray['sql'])) {
-            $sql = $requestDataArray['sql']['statementForCount'];
-            return $this->getTotalResultCountFromSql($sql);
-        }
         $mapper->setArrays($requestDataArray);
         $dbAttributesForQuery = $mapper->getMappedSecondAttributes();
 
@@ -191,7 +243,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         $this->setEntitiesFromResponse([]);
     }
 
-    private function getTotalResultCountFromSql($sql)
+    private function getTotalResultCountBySql($sql)
     {
         $config = Helper::getConfig();
         $tableReference = $config['repository']['tableReference'];
@@ -203,29 +255,27 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         return $stmt->count();
     }
 
-    private function processQueryAndSetEntities($requestDataArray)
+    private function processQueryAndSetEntities($sql)
     {
-        if (isset($requestDataArray['sql'])) {
-            $sql = $requestDataArray['sql']['statement'];
-            $config = Helper::getConfig();
-            $tableReference = $config['repository']['tableReference'];
-            $search  = array_keys($tableReference);
-            $replace = array_values($tableReference);
-            $sql = str_replace($search, $replace, $sql);
+        $config = Helper::getConfig();
+        $tableReference = $config['repository']['tableReference'];
+        $search  = array_keys($tableReference);
+        $replace = array_values($tableReference);
+        $sql = str_replace($search, $replace, $sql);
 
-            $pdo = new \PDO(
-                $config['database']['dsn'],
-                $config['database']['username'],
-                $config['database']['password']
-            );
+        $pdo = new \PDO(
+            $config['database']['dsn'],
+            $config['database']['username'],
+            $config['database']['password']
+        );
 
-            $stmt = $pdo->prepare($sql);
-            $stmt->setFetchMode(\PDO::FETCH_ASSOC);
-            $stmt->execute();
-            $result = $stmt->fetchAll();
-            $mapper = DbMapperFactory::make('task|pdo|entity');
-            $mapper->setArrays($result);
-            $this->setEntitiesFromResponse($mapper->getMappedFirstEntities());
-        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
+        $stmt->execute();
+        $result = $stmt->fetchAll();
+
+        $mapper = DbMapperFactory::make('task|pdo|entity');
+        $mapper->setArrays($result);
+        $this->setEntitiesFromResponse($mapper->getMappedFirstEntities());
     }
 }

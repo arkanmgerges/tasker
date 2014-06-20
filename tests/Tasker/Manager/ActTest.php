@@ -10,14 +10,14 @@ class ActTest extends BaseClass
     public function tearDown()
     {}
 
-    public function testAssignManager()
+    public function testActManager()
     {
         //$this->cleanAndPopulateDatabase();
 
         $myObject = new ActCallback();
 
         $manager = new ActManager();
-        $manager->setMaxProcesses(2);
+        $manager->setMaxProcesses(30);
         $manager->setConfigPath(__DIR__ . '/../Misc/config.php');
         $manager->setEnvironmentVariable('APP_ENV');
         $manager->registerCallbackObject($myObject);

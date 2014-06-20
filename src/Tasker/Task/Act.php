@@ -37,22 +37,9 @@ class Act implements CommandInterface
         $offset = 0;
         while($loop) {
             // 1. Find record
-            $request = new Request(
-                [
-                    'sql' => [
-                        'statement'         => 'SELECT * FROM :table1: WHERE ((startingDateTime + repeatingInterval) ' .
-                                               '< now()) AND ((statusId != ' . Task::STATUS_ID_PROCESSING . ') AND ' .
-                                               '(statusId != ' . Task::STATUS_ID_ENDED . ')) AND ' .
-                                               '(server IS NOT NULL) ORDER BY priority DESC, modifyingDateTime '.
-                                               'LIMIT '. $offset .',1;',
-                        'statementForCount' => 'SELECT * FROM :table1: WHERE ((startingDateTime + repeatingInterval) ' .
-                                               '< now()) AND ((statusId != ' . Task::STATUS_ID_PROCESSING . ') AND ' .
-                                               '(statusId != ' . Task::STATUS_ID_ENDED . ')) AND (server IS NOT NULL);',
-                    ]
-                ]
-            );
+            $request = new Request([Request::EXTRA_OFFSET => $offset]);
             $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
-                'task|retrieve',
+                'task|retrieveOneToProcess',
                 $request,
                 $this->getMaxRetries()
             );
@@ -60,7 +47,6 @@ class Act implements CommandInterface
             if ($response->getStatus() == Response::STATUS_FAIL) {
                 return;
             }
-            $result = $response->getResult();
 
             // 2. If there are no assigned records then, return
             $totalResultCount = $response->getTotalResultCount();
@@ -73,6 +59,7 @@ class Act implements CommandInterface
                 $offset = 0;
             }
 
+            $result = $response->getResult();
             // 3. Get the id
             $id = $result[0]->getId();
             // 4. Lock by id
@@ -141,12 +128,12 @@ class Act implements CommandInterface
                 ]
             ]
         );
-        $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
             'task|update',
             $request,
             $this->getMaxRetries()
         );
-        if ($response->getStatus() == Response::STATUS_FAIL) {
+        if ($status == Response::STATUS_FAIL) {
             return;
         }
         $this->currentTask->setStatusId(Task::STATUS_ID_ENDED);

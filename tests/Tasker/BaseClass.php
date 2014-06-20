@@ -1,7 +1,6 @@
 <?php
 namespace Test\Tasker;
 
-use Propel\Runtime\Connection\PropelPDO;
 use Test\Tasker\DataGateway\Db\Tool\Helper;
 use Propel\Runtime\Propel;
 use Tasker\Boundary\Request;
@@ -22,7 +21,7 @@ class BaseClass extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * setupAndGetPropelConnection
+     * Set up propel connection
      *
      * @return \Propel\Runtime\Connection\ConnectionInterface
      */
@@ -43,7 +42,9 @@ class BaseClass extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * prepareRequestObject
+     * Init request object
+     *
+     * @param array  $params  Array of parameters for request object
      *
      * @return Request
      */
