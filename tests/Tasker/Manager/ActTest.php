@@ -20,7 +20,8 @@ class ActTest extends BaseClass
         $manager->setMaxProcesses(30);
         $manager->setConfigPath(__DIR__ . '/../Misc/config.php');
         $manager->setEnvironmentVariable('APP_ENV');
-        $manager->registerCallbackObject($myObject);
+        $externalTypeId = 2;
+        $manager->registerCallbackObject($myObject, $externalTypeId);
         $manager->run();
     }
 }

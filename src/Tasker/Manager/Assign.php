@@ -11,7 +11,8 @@ class Assign
 {
     use HelperTrait;
 
-    const ID_TYPE = 'ASSIGN';
+    const ID_TYPE                        = 'ASSIGN';
+    const MAX_RETRY_TIME_BEFORE_CONTINUE = 5;
 
     private $maxProcesses     = 1;
     private $configPathString = null;
@@ -39,7 +40,8 @@ class Assign
     {
         $config = HelperTool::getConfig();
         $this->processMaxRetryTimeBeforeContinue = isset($config['process']['maxRetryTimeBeforeContinue']) ?
-            $config['process']['maxRetryTimeBeforeContinue'] : ((int) ($this->maxProcesses * 0.03)) + 1;
+            $config['process']['maxRetryTimeBeforeContinue'] :
+            ((int) ($this->maxProcesses * 0.03)) + self::MAX_RETRY_TIME_BEFORE_CONTINUE;
 
         $currentRunningProcessesCount = (int) $this->getCurrentRunningProcesses();
         $numberOfThreadsToCreate = $this->maxProcesses - $currentRunningProcessesCount;

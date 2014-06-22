@@ -12,7 +12,8 @@ class Act
 {
     use HelperTrait;
 
-    const ID_TYPE = 'ACT';
+    const ID_TYPE                        = 'ACT';
+    const MAX_RETRY_TIME_BEFORE_CONTINUE = 5;
 
     private $maxProcesses     = 1;
     private $configPathString = null;
@@ -21,6 +22,7 @@ class Act
 
     /** @var ActCallbackInterface $callback */
     private $callback = null;
+    private $externalTypeId = null;
 
     public function setMaxProcesses($maxProcesses)
     {
@@ -38,16 +40,18 @@ class Act
         HelperTool::setEnvironmentVariable($environmentVariable);
     }
 
-    public function registerCallbackObject(ActCallbackInterface $callback)
+    public function registerCallbackObject(ActCallbackInterface $callback, $externalTypeId)
     {
-        $this->callback = $callback;
+        $this->callback       = $callback;
+        $this->externalTypeId = $externalTypeId;
     }
 
     public function run()
     {
         $config = HelperTool::getConfig();
         $this->processMaxRetryTimeBeforeContinue = isset($config['process']['maxRetryTimeBeforeContinue']) ?
-            $config['process']['maxRetryTimeBeforeContinue'] : ((int) ($this->maxProcesses * 0.03)) + 1;
+            $config['process']['maxRetryTimeBeforeContinue'] :
+            ((int) ($this->maxProcesses * 0.03)) + self::MAX_RETRY_TIME_BEFORE_CONTINUE;
 
         $currentRunningProcessesCount = (int) $this->getCurrentRunningProcesses();
         $numberOfThreadsToCreate = $this->maxProcesses - $currentRunningProcessesCount;
@@ -91,7 +95,7 @@ class Act
         ]);
 
         $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|create', $request, $this->processMaxRetryTimeBeforeContinue);
-        $actTask = new ActTask($info, $this->callback);
+        $actTask = new ActTask($info, $this->callback, $this->externalTypeId);
         $actTask->execute();
         $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|delete', $request, $this->processMaxRetryTimeBeforeContinue);
     }

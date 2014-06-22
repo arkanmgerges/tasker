@@ -26,7 +26,7 @@ class Assign implements CommandInterface
         $loop = true;
         while($loop) {
             // 1. Find record with server = null
-            $request = new Request(['server' => null], [Request::EXTRA_LIMIT => 1]);
+            $request = new Request(['server' => ''], [Request::EXTRA_LIMIT => 1]);
             $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
                 'task|retrieve',
                 $request,
@@ -36,7 +36,8 @@ class Assign implements CommandInterface
             $result = $response->getResult();
 
             // 2. If there are no unassigned servers then, return
-            if ($response->getTotalResultCount() == 0) {
+            $resultCount = $response->getTotalResultCount();
+            if ((empty($resultCount)) || (!isset($result[0]))) {
                 $loop = false;
                 continue;
             }

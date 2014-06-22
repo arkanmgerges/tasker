@@ -12,11 +12,11 @@ class ArrangeCallback implements ArrangeCallbackInterface
     public function callback(Information $info, ArrangeInterface $caller)
     {
         $packet = new ArrangePacket();
-        $packet->setExternalId(1);
+        $packet->setExternalId(mt_rand(0, 9999999));
         $packet->setExternalTypeId(2);
         $packet->setPriority(1);
         $packet->setStartingDateTime(date('Y-m-d H:i:s'));
-        $packet->setExternalData('arrange-stage-test');
+        $packet->setExternalData('test');
 
         $caller->setPacket($packet);
     }

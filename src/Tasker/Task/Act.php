@@ -21,14 +21,16 @@ class Act implements CommandInterface
     private $callback = null;
     /** @var Task $currentTask */
     private $currentTask = null;
+    private $externalTypeId = null;
 
     /** @var ActPacket $actPacket */
     private $actPacket   = null;
 
-    public function __construct(Information $info, ActCallbackInterface $callback)
+    public function __construct(Information $info, ActCallbackInterface $callback, $externalTypeId)
     {
-        $this->info = $info;
-        $this->callback   = $callback;
+        $this->info           = $info;
+        $this->callback       = $callback;
+        $this->externalTypeId = $externalTypeId;
     }
 
     public function execute()
@@ -37,7 +39,7 @@ class Act implements CommandInterface
         $offset = 0;
         while($loop) {
             // 1. Find record
-            $request = new Request([Request::EXTRA_OFFSET => $offset]);
+            $request = new Request([Request::EXTRA_OFFSET => $offset, 'externalTypeId' => $this->externalTypeId]);
             $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
                 'task|retrieveOneToProcess',
                 $request,
@@ -48,9 +50,11 @@ class Act implements CommandInterface
                 return;
             }
 
+            $result = $response->getResult();
+
             // 2. If there are no assigned records then, return
             $totalResultCount = $response->getTotalResultCount();
-            if ($totalResultCount == 0) {
+            if ((empty($totalResultCount)) || (!isset($result[0]))) {
                 $loop = false;
                 continue;
             }
@@ -59,7 +63,6 @@ class Act implements CommandInterface
                 $offset = 0;
             }
 
-            $result = $response->getResult();
             // 3. Get the id
             $id = $result[0]->getId();
             // 4. Lock by id
@@ -94,14 +97,20 @@ class Act implements CommandInterface
                 $this->getMaxRetries()
             );
             $result = $response->getResult();
-            if ($response->getTotalResultCount() > 0) {
+            if (($response->getTotalResultCount() > 0) &&
+                (isset($result[0])) &&
+                ($result[0] instanceof Task)
+            ) {
                 $actPacket = new ActPacket();
-                $actPacket->setExternalId($result[0]->getExternalId());
-                $actPacket->setExternalTypeId($result[0]->getExternalTypeId());
-                $actPacket->setExternalData($result[0]->getExternalData());
-                $actPacket->setPriority($result[0]->getPriority());
-                $actPacket->setTypeId($result[0]->getTypeId());
-                $actPacket->setStartingDateTime($result[0]->getStartingDateTime());
+                /** @var \Tasker\Entity\Task $task */
+                $task      = $result[0];
+                $actPacket->setExternalId($task->getExternalId());
+                $actPacket->setExternalTypeId($task->getExternalTypeId());
+                $actPacket->setExternalData($task->getExternalData());
+                $actPacket->setRepeatingInterval($task->getRepeatingInterval());
+                $actPacket->setPriority($task->getPriority());
+                $actPacket->setTypeId($task->getTypeId());
+                $actPacket->setStartingDateTime($task->getStartingDateTime());
                 // Save the old values before calling callback
                 $this->actPacket = $actPacket;
                 $this->callback->callback($this->info, $actPacket, new Action($this));

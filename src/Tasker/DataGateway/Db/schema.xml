@@ -9,7 +9,7 @@
   </table>
   <table name="task" idMethod="native" phpName="Task">
       <column name="id" phpName="Id" type="INTEGER" sqlType="int(11) unsigned" primaryKey="true" autoIncrement="true" required="true"/>
-      <column name="server" phpName="Server" type="VARCHAR" size="45" required="true" defaultValue="NULL"/>
+      <column name="server" phpName="Server" type="VARCHAR" size="45" required="true" defaultValue=""/>
       <column name="statusId" phpName="StatusId" type="TINYINT" required="true" defaultValue="0"/>
       <column name="typeId" phpName="TypeId" type="TINYINT" required="true" defaultValue="1"/>
       <column name="creatingDateTime" phpName="CreatingDateTime" type="TIMESTAMP" required="true" defaultValue="NULL"/>
@@ -18,8 +18,8 @@
       <column name="endingDateTime" phpName="EndingDateTime" type="TIMESTAMP" required="true" defaultValue="NULL"/>
       <column name="priority" phpName="Priority" type="SMALLINT" sqlType="unsigned" required="true" defaultValue="0"/>
 
-      <column name="externalTypeId" phpName="ExternalTypeId" type="SMALLINT" sqlType="unsigned" required="true" defaultValue="NULL"/>
-      <column name="externalId" phpName="ExternalId" type="INTEGER" sqlType="int(11) unsigned" required="true" defaultValue="NULL"/>
+      <column name="externalTypeId" phpName="ExternalTypeId" type="VARCHAR" size="128" required="true" defaultValue=""/>
+      <column name="externalId" phpName="ExternalId" type="VARCHAR" size="128" required="true" defaultValue=""/>
       <column name="externalData" phpName="ExternalData" type="VARCHAR" size="16000000" required="true" defaultValue=""/>
 
 

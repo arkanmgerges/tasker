@@ -13,7 +13,7 @@ class ArrangeTest extends BaseClass
 
     public function testArrangeManager()
     {
-        //$this->cleanAndPopulateDatabase();
+        $this->cleanAndPopulateDatabase();
 
         $myObject = new ArrangeCallback();
 

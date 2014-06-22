@@ -183,7 +183,7 @@ class TaskTableMap extends TableMap
         $this->setUseIdGenerator(true);
         // columns
         $this->addPrimaryKey('ID', 'Id', 'INTEGER', true, null, null);
-        $this->addColumn('SERVER', 'Server', 'VARCHAR', true, 45, null);
+        $this->addColumn('SERVER', 'Server', 'VARCHAR', true, 45, '');
         $this->addColumn('STATUSID', 'StatusId', 'TINYINT', true, null, 0);
         $this->addColumn('TYPEID', 'TypeId', 'TINYINT', true, null, 1);
         $this->addColumn('CREATINGDATETIME', 'CreatingDateTime', 'TIMESTAMP', true, null, null);
@@ -191,8 +191,8 @@ class TaskTableMap extends TableMap
         $this->addColumn('STARTINGDATETIME', 'StartingDateTime', 'TIMESTAMP', true, null, null);
         $this->addColumn('ENDINGDATETIME', 'EndingDateTime', 'TIMESTAMP', true, null, null);
         $this->addColumn('PRIORITY', 'Priority', 'SMALLINT', true, null, 0);
-        $this->addColumn('EXTERNALTYPEID', 'ExternalTypeId', 'SMALLINT', true, null, null);
-        $this->addColumn('EXTERNALID', 'ExternalId', 'INTEGER', true, null, null);
+        $this->addColumn('EXTERNALTYPEID', 'ExternalTypeId', 'VARCHAR', true, 128, '');
+        $this->addColumn('EXTERNALID', 'ExternalId', 'VARCHAR', true, 128, '');
         $this->addColumn('EXTERNALDATA', 'ExternalData', 'VARCHAR', true, 16000000, '');
     } // initialize()
 

@@ -62,21 +62,22 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         $data = $request->getData();
         $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
+               'AND (externalTypeId = "' . $data['externalTypeId'] . '") ' .
                'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
                'AND ((statusId != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
                'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
-               'AND (server IS NOT NULL) ORDER BY priority DESC, modifyingDateTime '.
+               'AND (server != "") ORDER BY priority DESC, modifyingDateTime '.
                'LIMIT '. $data[Request::EXTRA_OFFSET] .',1;';
         $this->processQueryAndSetEntities($sql);
-        $this->totalResultCountMethodToBeCalled = ['getTotalResultCountForRetrieveOneToProcess', []];
+        $this->totalResultCountMethodToBeCalled = ['getTotalResultCountForRetrieveOneToProcess', $data];
         return;
     }
 
     public function retrieveOneUnEnded(Request $request)
     {
         $data = $request->getData();
-        $sql = 'SELECT * FROM :table1: WHERE (statusId != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
-               '(externalId = ' . $data['externalId'] . ') AND (externalTypeId = ' . $data['externalTypeId'] . ') ' .
+        $sql = 'SELECT * FROM :table1: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+               '(externalId = "' . $data['externalId'] . '") AND (externalTypeId = "' . $data['externalTypeId'] . '") ' .
                'LIMIT 1;';
         $this->processQueryAndSetEntities($sql);
         $this->totalResultCountMethodToBeCalled = ['getTotalResultCountForRetrieveOneUnEnded', $data];
@@ -85,20 +86,21 @@ class Task extends DbAbstract implements TaskRepositoryInterface
 
     private function getTotalResultCountForRetrieveOneUnEnded($params)
     {
-        $sql = 'SELECT * FROM :table1: WHERE (statusId != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
-            '(externalId = ' . $params['externalId'] . ') AND (externalTypeId = ' . $params['externalTypeId'] . ') ' .
+        $sql = 'SELECT * FROM :table1: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+            '(externalId = "' . $params['externalId'] . '") AND (externalTypeId = "' . $params['externalTypeId'] . '") ' .
             'LIMIT 1;';
         return $this->getTotalResultCountBySql($sql);
     }
 
-    private function getTotalResultCountForRetrieveOneToProcess()
+    private function getTotalResultCountForRetrieveOneToProcess($params)
     {
         $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
+               'AND (externalTypeId = "' . $params['externalTypeId'] . '") ' .
                'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
-               'AND ((statusId != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
+               'AND ((IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
                'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
-               'AND (server IS NOT NULL);';
+               'AND (server != "");';
         return $this->getTotalResultCountBySql($sql);
     }
 

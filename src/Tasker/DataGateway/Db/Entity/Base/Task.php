@@ -62,6 +62,7 @@ abstract class Task implements ActiveRecordInterface
 
     /**
      * The value for the server field.
+     * Note: this column has a database default value of: ''
      * @var        string
      */
     protected $server;
@@ -114,13 +115,15 @@ abstract class Task implements ActiveRecordInterface
 
     /**
      * The value for the externaltypeid field.
-     * @var        int
+     * Note: this column has a database default value of: ''
+     * @var        string
      */
     protected $externaltypeid;
 
     /**
      * The value for the externalid field.
-     * @var        int
+     * Note: this column has a database default value of: ''
+     * @var        string
      */
     protected $externalid;
 
@@ -147,10 +150,13 @@ abstract class Task implements ActiveRecordInterface
      */
     public function applyDefaultValues()
     {
+        $this->server = '';
         $this->statusid = 0;
         $this->typeid = 1;
         $this->repeatinginterval = 0;
         $this->priority = 0;
+        $this->externaltypeid = '';
+        $this->externalid = '';
         $this->externaldata = '';
     }
 
@@ -496,7 +502,7 @@ abstract class Task implements ActiveRecordInterface
     /**
      * Get the [externaltypeid] column value.
      *
-     * @return int
+     * @return string
      */
     public function getExternalTypeId()
     {
@@ -506,7 +512,7 @@ abstract class Task implements ActiveRecordInterface
     /**
      * Get the [externalid] column value.
      *
-     * @return int
+     * @return string
      */
     public function getExternalId()
     {
@@ -533,6 +539,10 @@ abstract class Task implements ActiveRecordInterface
      */
     public function hasOnlyDefaultValues()
     {
+            if ($this->server !== '') {
+                return false;
+            }
+
             if ($this->statusid !== 0) {
                 return false;
             }
@@ -546,6 +556,14 @@ abstract class Task implements ActiveRecordInterface
             }
 
             if ($this->priority !== 0) {
+                return false;
+            }
+
+            if ($this->externaltypeid !== '') {
+                return false;
+            }
+
+            if ($this->externalid !== '') {
                 return false;
             }
 
@@ -616,10 +634,10 @@ abstract class Task implements ActiveRecordInterface
             $this->priority = (null !== $col) ? (int) $col : null;
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 9 + $startcol : TaskTableMap::translateFieldName('ExternalTypeId', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->externaltypeid = (null !== $col) ? (int) $col : null;
+            $this->externaltypeid = (null !== $col) ? (string) $col : null;
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 10 + $startcol : TaskTableMap::translateFieldName('ExternalId', TableMap::TYPE_PHPNAME, $indexType)];
-            $this->externalid = (null !== $col) ? (int) $col : null;
+            $this->externalid = (null !== $col) ? (string) $col : null;
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 11 + $startcol : TaskTableMap::translateFieldName('ExternalData', TableMap::TYPE_PHPNAME, $indexType)];
             $this->externaldata = (null !== $col) ? (string) $col : null;
@@ -838,13 +856,13 @@ abstract class Task implements ActiveRecordInterface
     /**
      * Set the value of [externaltypeid] column.
      *
-     * @param  int $v new value
+     * @param  string $v new value
      * @return $this|\Tasker\DataGateway\Db\Entity\Task The current object (for fluent API support)
      */
     public function setExternalTypeId($v)
     {
         if ($v !== null) {
-            $v = (int) $v;
+            $v = (string) $v;
         }
 
         if ($this->externaltypeid !== $v) {
@@ -858,13 +876,13 @@ abstract class Task implements ActiveRecordInterface
     /**
      * Set the value of [externalid] column.
      *
-     * @param  int $v new value
+     * @param  string $v new value
      * @return $this|\Tasker\DataGateway\Db\Entity\Task The current object (for fluent API support)
      */
     public function setExternalId($v)
     {
         if ($v !== null) {
-            $v = (int) $v;
+            $v = (string) $v;
         }
 
         if ($this->externalid !== $v) {
@@ -1143,10 +1161,10 @@ abstract class Task implements ActiveRecordInterface
                         $stmt->bindValue($identifier, $this->priority, PDO::PARAM_INT);
                         break;
                     case '`EXTERNALTYPEID`':
-                        $stmt->bindValue($identifier, $this->externaltypeid, PDO::PARAM_INT);
+                        $stmt->bindValue($identifier, $this->externaltypeid, PDO::PARAM_STR);
                         break;
                     case '`EXTERNALID`':
-                        $stmt->bindValue($identifier, $this->externalid, PDO::PARAM_INT);
+                        $stmt->bindValue($identifier, $this->externalid, PDO::PARAM_STR);
                         break;
                     case '`EXTERNALDATA`':
                         $stmt->bindValue($identifier, $this->externaldata, PDO::PARAM_STR);

@@ -12,9 +12,10 @@ class Arrange
 {
     use HelperTrait;
 
-    const ID_TYPE                  = 'ARRANGE';
-    const ARRANGE_MODE_UNIQUE      = 'ARRANGE_MODE_UNIQUE';
-    const ARRANGE_MODE_REPEATABLE  = 'ARRANGE_MODE_REPEATABLE';
+    const ID_TYPE                        = 'ARRANGE';
+    const ARRANGE_MODE_UNIQUE            = 'ARRANGE_MODE_UNIQUE';
+    const ARRANGE_MODE_REPEATABLE        = 'ARRANGE_MODE_REPEATABLE';
+    const MAX_RETRY_TIME_BEFORE_CONTINUE = 5;
 
     private $arrangeMode = self::ARRANGE_MODE_UNIQUE;
 
@@ -63,7 +64,8 @@ class Arrange
     {
         $config = HelperTool::getConfig();
         $this->processMaxRetryTimeBeforeContinue = isset($config['process']['maxRetryTimeBeforeContinue']) ?
-            $config['process']['maxRetryTimeBeforeContinue'] : ((int) ($this->maxProcesses * 0.03)) + 1;
+            $config['process']['maxRetryTimeBeforeContinue'] :
+            ((int) ($this->maxProcesses * 0.03)) + self::MAX_RETRY_TIME_BEFORE_CONTINUE;
 
         $currentRunningProcessesCount = (int) $this->getCurrentRunningProcesses();
         $numberOfThreadsToCreate = $this->maxProcesses - $currentRunningProcessesCount;

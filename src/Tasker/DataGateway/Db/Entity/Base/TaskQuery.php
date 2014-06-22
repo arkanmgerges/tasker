@@ -61,8 +61,8 @@ use Tasker\DataGateway\Db\Entity\Map\TaskTableMap;
  * @method     ChildTask findOneByStartingDateTime(string $startingDateTime) Return the first ChildTask filtered by the startingDateTime column
  * @method     ChildTask findOneByEndingDateTime(string $endingDateTime) Return the first ChildTask filtered by the endingDateTime column
  * @method     ChildTask findOneByPriority(int $priority) Return the first ChildTask filtered by the priority column
- * @method     ChildTask findOneByExternalTypeId(int $externalTypeId) Return the first ChildTask filtered by the externalTypeId column
- * @method     ChildTask findOneByExternalId(int $externalId) Return the first ChildTask filtered by the externalId column
+ * @method     ChildTask findOneByExternalTypeId(string $externalTypeId) Return the first ChildTask filtered by the externalTypeId column
+ * @method     ChildTask findOneByExternalId(string $externalId) Return the first ChildTask filtered by the externalId column
  * @method     ChildTask findOneByExternalData(string $externalData) Return the first ChildTask filtered by the externalData column
  *
  * @method     ChildTask[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildTask objects based on current ModelCriteria
@@ -75,8 +75,8 @@ use Tasker\DataGateway\Db\Entity\Map\TaskTableMap;
  * @method     ChildTask[]|ObjectCollection findByStartingDateTime(string $startingDateTime) Return ChildTask objects filtered by the startingDateTime column
  * @method     ChildTask[]|ObjectCollection findByEndingDateTime(string $endingDateTime) Return ChildTask objects filtered by the endingDateTime column
  * @method     ChildTask[]|ObjectCollection findByPriority(int $priority) Return ChildTask objects filtered by the priority column
- * @method     ChildTask[]|ObjectCollection findByExternalTypeId(int $externalTypeId) Return ChildTask objects filtered by the externalTypeId column
- * @method     ChildTask[]|ObjectCollection findByExternalId(int $externalId) Return ChildTask objects filtered by the externalId column
+ * @method     ChildTask[]|ObjectCollection findByExternalTypeId(string $externalTypeId) Return ChildTask objects filtered by the externalTypeId column
+ * @method     ChildTask[]|ObjectCollection findByExternalId(string $externalId) Return ChildTask objects filtered by the externalId column
  * @method     ChildTask[]|ObjectCollection findByExternalData(string $externalData) Return ChildTask objects filtered by the externalData column
  * @method     ChildTask[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
@@ -625,36 +625,24 @@ abstract class TaskQuery extends ModelCriteria
      *
      * Example usage:
      * <code>
-     * $query->filterByExternalTypeId(1234); // WHERE externalTypeId = 1234
-     * $query->filterByExternalTypeId(array(12, 34)); // WHERE externalTypeId IN (12, 34)
-     * $query->filterByExternalTypeId(array('min' => 12)); // WHERE externalTypeId > 12
+     * $query->filterByExternalTypeId('fooValue');   // WHERE externalTypeId = 'fooValue'
+     * $query->filterByExternalTypeId('%fooValue%'); // WHERE externalTypeId LIKE '%fooValue%'
      * </code>
      *
-     * @param     mixed $externalTypeId The value to use as filter.
-     *              Use scalar values for equality.
-     *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $externalTypeId The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this|ChildTaskQuery The current query, for fluid interface
      */
     public function filterByExternalTypeId($externalTypeId = null, $comparison = null)
     {
-        if (is_array($externalTypeId)) {
-            $useMinMax = false;
-            if (isset($externalTypeId['min'])) {
-                $this->addUsingAlias(TaskTableMap::COL_EXTERNALTYPEID, $externalTypeId['min'], Criteria::GREATER_EQUAL);
-                $useMinMax = true;
-            }
-            if (isset($externalTypeId['max'])) {
-                $this->addUsingAlias(TaskTableMap::COL_EXTERNALTYPEID, $externalTypeId['max'], Criteria::LESS_EQUAL);
-                $useMinMax = true;
-            }
-            if ($useMinMax) {
-                return $this;
-            }
-            if (null === $comparison) {
+        if (null === $comparison) {
+            if (is_array($externalTypeId)) {
                 $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $externalTypeId)) {
+                $externalTypeId = str_replace('*', '%', $externalTypeId);
+                $comparison = Criteria::LIKE;
             }
         }
 
@@ -666,36 +654,24 @@ abstract class TaskQuery extends ModelCriteria
      *
      * Example usage:
      * <code>
-     * $query->filterByExternalId(1234); // WHERE externalId = 1234
-     * $query->filterByExternalId(array(12, 34)); // WHERE externalId IN (12, 34)
-     * $query->filterByExternalId(array('min' => 12)); // WHERE externalId > 12
+     * $query->filterByExternalId('fooValue');   // WHERE externalId = 'fooValue'
+     * $query->filterByExternalId('%fooValue%'); // WHERE externalId LIKE '%fooValue%'
      * </code>
      *
-     * @param     mixed $externalId The value to use as filter.
-     *              Use scalar values for equality.
-     *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $externalId The value to use as filter.
+     *              Accepts wildcards (* and % trigger a LIKE)
      * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this|ChildTaskQuery The current query, for fluid interface
      */
     public function filterByExternalId($externalId = null, $comparison = null)
     {
-        if (is_array($externalId)) {
-            $useMinMax = false;
-            if (isset($externalId['min'])) {
-                $this->addUsingAlias(TaskTableMap::COL_EXTERNALID, $externalId['min'], Criteria::GREATER_EQUAL);
-                $useMinMax = true;
-            }
-            if (isset($externalId['max'])) {
-                $this->addUsingAlias(TaskTableMap::COL_EXTERNALID, $externalId['max'], Criteria::LESS_EQUAL);
-                $useMinMax = true;
-            }
-            if ($useMinMax) {
-                return $this;
-            }
-            if (null === $comparison) {
+        if (null === $comparison) {
+            if (is_array($externalId)) {
                 $comparison = Criteria::IN;
+            } elseif (preg_match('/[\%\*]/', $externalId)) {
+                $externalId = str_replace('*', '%', $externalId);
+                $comparison = Criteria::LIKE;
             }
         }
 
