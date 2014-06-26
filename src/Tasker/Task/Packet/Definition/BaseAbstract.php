@@ -3,6 +3,7 @@ namespace Tasker\Task\Packet\Definition;
 
 abstract class BaseAbstract
 {
+    private $id;
     private $typeId;
     private $repeatingInterval;
     private $priority;
@@ -77,6 +78,15 @@ abstract class BaseAbstract
         $this->typeId = $typeId;
     }
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
     /**
      * Get all the attributes of this class
      *

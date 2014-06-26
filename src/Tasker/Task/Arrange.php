@@ -36,6 +36,55 @@ class Arrange implements ArrangeInterface
         return $this->typeId;
     }
 
+    public function retrieve(ArrangePacket $arrangePacket)
+    {
+        $response = $this->runUseCaseAndReturnResponse('task|retrieve', new Request(['id' => $arrangePacket->getId()]));
+        return $response->getResult();
+    }
+
+    public function retrieveByExternalTypeIdAndExternalId($externalTypeId, $externalId)
+    {
+        $response = $this->runUseCaseAndReturnResponse(
+            'task|retrieve',
+            new Request(
+                [
+                    'externalTypeId' => $externalTypeId,
+                    'externalId'     => $externalId
+                ]
+            )
+        );
+        return $response->getResult();
+    }
+
+    public function deleteByExternalTypeIdAndExternalId($externalTypeId, $externalId)
+    {
+        $response = $this->runUseCaseAndReturnResponse(
+            'task|delete',
+            new Request(
+                [
+                    'externalTypeId' => $externalTypeId,
+                    'externalId'     => $externalId
+                ]
+            )
+        );
+        return ($response->getStatus() == Response::STATUS_SUCCESS);
+    }
+
+    public function deleteByExternalTypeId($externalTypeId)
+    {
+        $response = $this->runUseCaseAndReturnResponse(
+            'task|delete',
+            new Request(['externalTypeId' => $externalTypeId,])
+        );
+        return ($response->getStatus() == Response::STATUS_SUCCESS);
+    }
+
+    public function delete(ArrangePacket $arrangePacket)
+    {
+        $response = $this->runUseCaseAndReturnResponse('task|delete', new Request(['id' => $arrangePacket->getId()]));
+        return ($response->getStatus() == Response::STATUS_SUCCESS);
+    }
+
     public function setPacket(ArrangePacket $arrangePacket)
     {
         $lockId = ArrangeManager::ID_TYPE . '-' .
