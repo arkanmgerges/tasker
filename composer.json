@@ -15,7 +15,7 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "arkanmgerges/multi-tier-architecture" : "~1.0.0",
+        "arkanmgerges/multi-tier-architecture" : "~1",
         "propel/propel": "2.0.0-alpha3",
         "monolog/monolog": "1.10.0"
     },
