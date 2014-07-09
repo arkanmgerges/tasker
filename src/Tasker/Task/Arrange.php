@@ -42,7 +42,7 @@ class Arrange implements ArrangeInterface
         return $response->getResult();
     }
 
-    public function retrieveByExternalTypeIdAndExternalId($externalTypeId, $externalId)
+    public function retrieveResponseByExternalTypeIdAndExternalId($externalTypeId, $externalId)
     {
         $response = $this->runUseCaseAndReturnResponse(
             'task|retrieve',
@@ -85,7 +85,7 @@ class Arrange implements ArrangeInterface
         return ($response->getStatus() == Response::STATUS_SUCCESS);
     }
 
-    public function setPacket(ArrangePacket $arrangePacket)
+    public function setPacket(ArrangePacket $arrangePacket, $forceOverwrite = false)
     {
         $lockId = ArrangeManager::ID_TYPE . '-' .
             $arrangePacket->getExternalTypeId() . '-' .
@@ -103,15 +103,39 @@ class Arrange implements ArrangeInterface
             $response = $this->retrieveTask($arrangePacket->getExternalId(), $arrangePacket->getExternalTypeId());
             // 1.4 If it does exist, then delete the lock and exit
             if (($response->getStatus() == Response::STATUS_FAIL) ||
-                (($response->getStatus() != Response::STATUS_FAIL) &&
-                ($response->getTotalResultCount() > 0))
+                (
+                    ($response->getStatus() != Response::STATUS_FAIL) &&
+                    ($response->getTotalResultCount() > 0) &&
+                    (!$forceOverwrite)
+                )
             ) {
                 // 1.4.1 Delete the lock and return
                 $this->deleteLock($lockId);
                 return false;
             }
-            // 1.5 If there is no other record, then create a new task record
-            $isSucceed = $this->createTask($arrangePacket);
+
+            $isSucceed = false;
+            // 1.5 check overwrite
+            if ($forceOverwrite) {
+                // 1.5.1 Retrieve task first
+                $tasks = $this->retrieveResponseByExternalTypeIdAndExternalId(
+                    $arrangePacket->getExternalTypeId(),
+                    $arrangePacket->getExternalId()
+                );
+                if (isset($tasks[0]) && !empty($tasks[0])) {
+                    /** @var Task $task */
+                    $task = $tasks[0];
+                    $isSucceed = $this->updateTask($task->getId(), $arrangePacket);
+                }
+                else {
+                    $isSucceed = $this->createTask($arrangePacket);
+                }
+            }
+            else {
+                // 1.5.2 Create task
+                $isSucceed = $this->createTask($arrangePacket);
+            }
+
             // 1.6 Delete the lock record
             $this->deleteLock($lockId);
             return $isSucceed;
@@ -136,6 +160,33 @@ class Arrange implements ArrangeInterface
         );
         $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
             'task|create',
+            $request,
+            $this->getMaxRetries()
+        );
+
+        if ($status == Response::STATUS_FAIL) {
+            return false;
+        }
+        return true;
+    }
+
+    private function updateTask($id, ArrangePacket $arrangePacket)
+    {
+        $request = new Request(
+            [
+                ['id' => $id],
+                [
+                    'externalId'       => $arrangePacket->getExternalId(),
+                    'externalTypeId'   => $arrangePacket->getExternalTypeId(),
+                    'externalData'     => $arrangePacket->getExternalData(),
+                    'priority'         => $arrangePacket->getPriority(),
+                    'startingDateTime' => $arrangePacket->getStartingDateTime(),
+                    'creatingDateTime' => date('Y-m-d H:i:s')
+                ]
+            ]
+        );
+        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+            'task|update',
             $request,
             $this->getMaxRetries()
         );

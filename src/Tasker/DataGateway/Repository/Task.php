@@ -60,7 +60,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
     public function retrieveOneToProcess(Request $request)
     {
         $data = $request->getData();
-        $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
+        $sql = 'SELECT task.* FROM :task: task LEFT JOIN :lock: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
                'AND (externalTypeId = "' . $data['externalTypeId'] . '") ' .
                'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
@@ -76,7 +76,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
     public function retrieveOneUnEnded(Request $request)
     {
         $data = $request->getData();
-        $sql = 'SELECT * FROM :table1: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+        $sql = 'SELECT * FROM :task: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
                '(externalId = "' . $data['externalId'] . '") AND (externalTypeId = "' . $data['externalTypeId'] . '") ' .
                'LIMIT 1;';
         $this->processQueryAndSetEntities($sql);
@@ -86,7 +86,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
 
     private function getTotalResultCountForRetrieveOneUnEnded($params)
     {
-        $sql = 'SELECT * FROM :table1: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
+        $sql = 'SELECT * FROM :task: WHERE (IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_ENDED . ') AND ' .
             '(externalId = "' . $params['externalId'] . '") AND (externalTypeId = "' . $params['externalTypeId'] . '") ' .
             'LIMIT 1;';
         return $this->getTotalResultCountBySql($sql);
@@ -94,7 +94,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
 
     private function getTotalResultCountForRetrieveOneToProcess($params)
     {
-        $sql = 'SELECT task.* FROM :table1: task LEFT JOIN :table2: tLock ON tLock.id = CONCAT_WS("-", "' .
+        $sql = 'SELECT task.* FROM :task: task LEFT JOIN :lock: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
                'AND (externalTypeId = "' . $params['externalTypeId'] . '") ' .
                'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .

@@ -11,8 +11,14 @@ return [
             'connectionName' => 'default',
             'dsn'            => 'mysql:host={hostname};dbname={db name}',
         ],
+        'repository' => [
+            'tableReference' => [
+                ':task:' => '{task table}',
+                ':lock:' => '{lock table}',
+            ],
+        ],
         'process' => [
-            'maxRetryTimeBeforeContinue' => 9
+            'maxRetryTimeBeforeContinue' => {No. of retry time before continue to the next instruction}
         ]
     ],
     'production:base' => [],

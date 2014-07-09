@@ -37,7 +37,7 @@ class ActTest extends BaseClass
         ]);
 
         $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|create', $request, 3);
-        $actTask = new ActTask($info, $myObject);
+        $actTask = new ActTask($info, $myObject, 2);
         $actTask->execute();
         $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|delete', $request, 3);
     }
