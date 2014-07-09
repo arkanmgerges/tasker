@@ -3,14 +3,14 @@ namespace Tasker\Task\Packet\Definition;
 
 abstract class BaseAbstract
 {
-    private $id;
-    private $typeId;
-    private $repeatingInterval;
-    private $priority;
-    private $startingDateTime;
-    private $externalTypeId;
-    private $externalId;
-    private $externalData;
+    private $id                = null;
+    private $typeId            = null;
+    private $repeatingInterval = null;
+    private $priority          = null;
+    private $startingDateTime  = null;
+    private $externalTypeId    = null;
+    private $externalId        = null;
+    private $externalData      = null;
 
     public function getPriority()
     {

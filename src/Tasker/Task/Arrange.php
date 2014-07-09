@@ -92,7 +92,7 @@ class Arrange implements ArrangeInterface
             $arrangePacket->getExternalId();
 
         // 1. Is it a unique mode ?
-        if ($this->info->getArrangeMode() == \Tasker\Manager\Arrange::ARRANGE_MODE_UNIQUE) {
+        if ($this->info->getArrangeMode() == ArrangeManager::ARRANGE_MODE_UNIQUE) {
             // 1.1 Lock the action arrange
             $response = $this->createLock($lockId);
             // 1.2 If it could not lock, then exit
@@ -148,16 +148,14 @@ class Arrange implements ArrangeInterface
 
     private function createTask(ArrangePacket $arrangePacket)
     {
-        $request = new Request(
-            [
-                'externalId'       => $arrangePacket->getExternalId(),
-                'externalTypeId'   => $arrangePacket->getExternalTypeId(),
-                'externalData'     => $arrangePacket->getExternalData(),
-                'priority'         => $arrangePacket->getPriority(),
-                'startingDateTime' => $arrangePacket->getStartingDateTime(),
-                'creatingDateTime' => date('Y-m-d H:i:s')
-            ]
-        );
+        $data = [];
+        foreach ($arrangePacket->getAttributes() as $key => $value) {
+            if ($value != null) {
+                $data[$key] = $value;
+            }
+        }
+        $data['creatingDateTime'] = date('Y-m-d H:i:s');
+        $request = new Request($data);
         $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
             'task|create',
             $request,
@@ -172,17 +170,17 @@ class Arrange implements ArrangeInterface
 
     private function updateTask($id, ArrangePacket $arrangePacket)
     {
+        $data = [];
+        foreach ($arrangePacket->getAttributes() as $key => $value) {
+            if ($value != null) {
+                $data[$key] = $value;
+            }
+        }
+        unset($data['creatingDateTime']);
         $request = new Request(
             [
                 ['id' => $id],
-                [
-                    'externalId'       => $arrangePacket->getExternalId(),
-                    'externalTypeId'   => $arrangePacket->getExternalTypeId(),
-                    'externalData'     => $arrangePacket->getExternalData(),
-                    'priority'         => $arrangePacket->getPriority(),
-                    'startingDateTime' => $arrangePacket->getStartingDateTime(),
-                    'creatingDateTime' => date('Y-m-d H:i:s')
-                ]
+                $data
             ]
         );
         $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
