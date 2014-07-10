@@ -16,9 +16,9 @@ class ArrangeCallbackRandom implements ArrangeCallbackInterface
         $packet->setPriority(1);
         $packet->setStartingDateTime(date('Y-m-d H:i:s'));
         $packet->setExternalData('test');
-
-        if ($caller->setPacket($packet)) {
-            // ok
+        $caller->setPacket($packet);
+        if ($caller->isLastOperationSucceeded()) {
+             // Ok
         }
     }
 }

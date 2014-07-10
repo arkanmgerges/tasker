@@ -66,7 +66,8 @@ class Assign
     private function getCurrentRunningProcesses()
     {
         $request = new Request(['server' => gethostname(), 'extra' => self::ID_TYPE]);
-        return $this->runUseCaseAndReturnTotalResultCount('process|retrieve', $request);
+        $this->executeUseCase('process|retrieve', $request);
+        return $this->getUseCaseTotalResultCount();
     }
 
     private function doJob()
@@ -85,9 +86,9 @@ class Assign
             'creatingDateTime' => date('Y-m-d H:i:s')
         ]);
 
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|create', $request, $this->processMaxRetryTimeBeforeContinue);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|create', $request, $this->processMaxRetryTimeBeforeContinue);
         $assignTask = new AssignTask($info);
         $assignTask->execute();
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|delete', $request, $this->processMaxRetryTimeBeforeContinue);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|delete', $request, $this->processMaxRetryTimeBeforeContinue);
     }
 }

@@ -57,6 +57,53 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         $this->setEntitiesFromResponse($mapper->getMappedFirstEntities());
     }
 
+    /**
+     * Create a task with transaction into the data gateway
+     *
+     * @param Request  $request  Request that will contain attributes of the new entity to be created
+     *
+     * @throws EmptyArray When an empty array is found
+     *
+     * @return void
+     */
+    public function CreateOverwriteByExternalTypeIdAndExternalId(Request $request)
+    {
+        $con = Propel::getConnection();
+        $con->beginTransaction();
+        $this->retrieve(
+            new Request(
+                [
+                    'externalTypeId' => $request->getData()['externalTypeId'],
+                    'externalId'     => $request->getData()['externalId']
+                ]
+            )
+        );
+        if (count($this->getEntitiesFromResponse()) > 0) {
+            $con->rollBack();
+            return;
+        }
+
+        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        $mapper = DbMapperFactory::make('task|entity');
+        $mapper->setArrays($request->getData());
+
+        /** @var \Tasker\DataGateway\Db\Entity\Task $task */
+        $dbTaskCollection = $mapper->getMappedSecondEntities();
+        if (!isset($dbTaskCollection[0])) {
+            $con->rollBack();
+            throw new EmptyArray('Array must be populated with one db entity', __FILE__, __LINE__);
+        }
+
+        /** @var ActiveRecordInterface $dbTask */
+        $dbTask = $dbTaskCollection[0];
+        $dbTask->save();
+        $con->commit();
+
+        $mapper->setArrays($dbTask->toArray());
+
+        $this->setEntitiesFromResponse($mapper->getMappedFirstEntities());
+    }
+
     public function retrieveOneToProcess(Request $request)
     {
         $data = $request->getData();

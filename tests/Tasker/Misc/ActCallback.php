@@ -16,7 +16,8 @@ class ActCallback implements ActCallbackInterface
         }
         $data++;
         $dataContainer->setExternalData($data);
-        if ($action->updateTask($dataContainer)) {
+        $action->updateTask($dataContainer);
+        if ($action->isUpdateTaskSucceeded()) {
             $action->endTask();
         }
     }

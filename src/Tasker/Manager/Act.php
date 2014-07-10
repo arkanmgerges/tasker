@@ -75,7 +75,8 @@ class Act
     private function getCurrentRunningProcesses()
     {
         $request = new Request(['server' => gethostname(), 'extra' => self::ID_TYPE]);
-        return $this->runUseCaseAndReturnTotalResultCount('process|retrieve', $request);
+        $this->executeUseCase('process|retrieve', $request);
+        return $this->getUseCaseTotalResultCount();
     }
 
     private function doJob()
@@ -94,9 +95,9 @@ class Act
             'creatingDateTime' => date('Y-m-d H:i:s')
         ]);
 
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|create', $request, $this->processMaxRetryTimeBeforeContinue);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|create', $request, $this->processMaxRetryTimeBeforeContinue);
         $actTask = new ActTask($info, $this->callback, $this->externalTypeId);
         $actTask->execute();
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|delete', $request, $this->processMaxRetryTimeBeforeContinue);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|delete', $request, $this->processMaxRetryTimeBeforeContinue);
     }
 }

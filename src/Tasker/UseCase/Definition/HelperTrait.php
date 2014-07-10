@@ -7,37 +7,45 @@ use Tasker\UseCase\Factory;
 
 trait HelperTrait
 {
-    public function runUseCaseAndReturnIt($useCaseString, RequestAbstract $request)
+    private $useCase = null;
+    private $useCaseResponse = [];
+    private $useCaseTotalResultCount = 0;
+    private $useCaseResponseStatus = Response::STATUS_FAIL;
+
+    public function executeUseCase($useCaseString, RequestAbstract $request)
     {
         /** @var \MultiTierArchitecture\UseCase\Definition\BaseAbstract $useCase */
         $useCase = Factory::make($useCaseString);
         $useCase->setRequest($request);
         $useCase->execute();
-        return $useCase;
+
+        $this->useCase                 = $useCase;
+        $this->useCaseResponse         = $useCase->getResponse();
+        $this->useCaseTotalResultCount = $this->useCaseResponse->getTotalResultCount();
+        $this->useCaseResponseStatus   = $this->useCaseResponse->getStatus();
     }
 
-    public function runUseCaseAndReturnResponse($useCaseString, RequestAbstract $request)
+    public function getUseCase()
     {
-        $useCase = $this->runUseCaseAndReturnIt($useCaseString, $request);
-        return $useCase->getResponse();
+        return $this->useCase;
     }
 
-    public function runUseCaseAndReturnTotalResultCount($useCaseString, RequestAbstract $request, $maxRetries = 1)
+    public function getUseCaseResponse()
     {
-        $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse($useCaseString, $request, $maxRetries);
-        return $response->getTotalResultCount();
+        return $this->useCaseResponse;
     }
 
-    public function runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
-        $useCaseString,
-        RequestAbstract $request,
-        $maxRetries = 1)
+    public function getUseCaseTotalResultCount()
     {
-        $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse($useCaseString, $request, $maxRetries);
-        return $response->getStatus();
+        return $this->useCaseTotalResultCount;
     }
 
-    public function runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
+    public function getUseCaseResponseStatus()
+    {
+        return $this->useCaseResponseStatus;
+    }
+
+    public function runUseCaseWithNoOfRetriesOnFail(
         $useCaseString,
         RequestAbstract $request,
         $maxRetries = 1
@@ -46,13 +54,13 @@ trait HelperTrait
         $loop = true;
         $response = null;
         while ($loop) {
-            $response = $this->runUseCaseAndReturnResponse($useCaseString, $request);
+            $this->executeUseCase($useCaseString, $request);
+            $response = $this->getUseCaseResponse();
             if ($response->getStatus() != Response::STATUS_SUCCESS) {
                 $remainingRetries--;
-                if ($remainingRetries <= 0) {
-                    return $response;
+                if ($remainingRetries > 0) {
+                    sleep(1);
                 }
-                sleep(1);
             }
             else {
                 $loop = false;

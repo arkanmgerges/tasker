@@ -26,6 +26,8 @@ class Act implements CommandInterface
     /** @var ActPacket $actPacket */
     private $actPacket   = null;
 
+    private $lastOperationSuccess = false;
+
     public function __construct(Information $info, ActCallbackInterface $callback, $externalTypeId)
     {
         $this->info           = $info;
@@ -40,13 +42,14 @@ class Act implements CommandInterface
         while($loop) {
             // 1. Find record
             $request = new Request([Request::EXTRA_OFFSET => $offset, 'externalTypeId' => $this->externalTypeId]);
-            $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
+            $this->runUseCaseWithNoOfRetriesOnFail(
                 'task|retrieveOneToProcess',
                 $request,
                 $this->getMaxRetries()
             );
-
+            $response = $this->getUseCaseResponse();
             if ($response->getStatus() == Response::STATUS_FAIL) {
+                $this->lastOperationSuccess = false;
                 return;
             }
 
@@ -67,14 +70,17 @@ class Act implements CommandInterface
             $id = $result[0]->getId();
             // 4. Lock by id
             $lockId = ActManager::ID_TYPE . '-' . $id;
-            $response = $this->createLock($lockId);
+            $this->createLock($lockId);
+            $response = $this->getUseCaseResponse();
 
             // 5. If it could not lock, then exit
             if ($response->getStatus() == Response::STATUS_FAIL) {
+                $this->lastOperationSuccess = false;
                 return;
             }
             // 6. If conflict then increase offset
             if (in_array(23000, $response->getCodes())) {
+                $this->lastOperationSuccess = false;
                 $offset++;
                 continue;
             }
@@ -88,14 +94,15 @@ class Act implements CommandInterface
             }
 
             // 7. Update the current task to change its status
-            $this->updateTaskStatusAndStartingDateTimeInCaseOfRecurringTypeById($id, Task::STATUS_ID_PROCESSING);
+            $this->updateTaskStatusByIdAndStatusId($id, Task::STATUS_ID_PROCESSING);
 
             // 8. Retrieve record
-            $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
+            $this->runUseCaseWithNoOfRetriesOnFail(
                 'task|retrieve',
                 new Request(['id' => $id]),
                 $this->getMaxRetries()
             );
+            $response = $this->getUseCaseResponse();
             $result = $response->getResult();
             if (($response->getTotalResultCount() > 0) &&
                 (isset($result[0])) &&
@@ -117,7 +124,7 @@ class Act implements CommandInterface
             }
             // 9. Update the current task to change its status
             if ($this->currentTask->getStatusId() != Task::STATUS_ID_ENDED) {
-                $this->updateTaskStatusAndStartingDateTimeInCaseOfRecurringTypeById($id, Task::STATUS_ID_SLEEPING);
+                $this->updateTaskStatusByIdAndStatusId($id, Task::STATUS_ID_SLEEPING);
             }
             // 10. Delete the lock record
             $this->deleteLock($lockId);
@@ -137,15 +144,22 @@ class Act implements CommandInterface
                 ]
             ]
         );
-        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+        $this->runUseCaseWithNoOfRetriesOnFail(
             'task|update',
             $request,
             $this->getMaxRetries()
         );
-        if ($status == Response::STATUS_FAIL) {
+        if ($this->getUseCaseResponseStatus() == Response::STATUS_FAIL) {
+            $this->lastOperationSuccess = false;
             return;
         }
+        $this->lastOperationSuccess = true;
         $this->currentTask->setStatusId(Task::STATUS_ID_ENDED);
+    }
+
+    public function isLastOperationSucceeded()
+    {
+        return $this->lastOperationSuccess;
     }
 
     public function updateTask(ActPacket $actPacket)
@@ -171,20 +185,20 @@ class Act implements CommandInterface
                 ]
             ]
         );
-        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+        $this->runUseCaseWithNoOfRetriesOnFail(
             'task|update',
             $request,
             $this->getMaxRetries()
         );
-        if ($status == Response::STATUS_FAIL) {
-            return false;
+        if ($this->getUseCaseResponseStatus() == Response::STATUS_FAIL) {
+            $this->lastOperationSuccess = false;
         }
         // Update the current task
         $this->currentTask->setTypeId($actPacket->getTypeId());
-        return true;
+        $this->lastOperationSuccess = true;
     }
 
-    private function updateTaskStatusAndStartingDateTimeInCaseOfRecurringTypeById($id, $statusId)
+    private function updateTaskStatusByIdAndStatusId($id, $statusId)
     {
         // If it's a recurring type task, and the old value of starting date time is not change, then updated it
         $request = null;
@@ -194,37 +208,28 @@ class Act implements CommandInterface
         else {
             $request = new Request([['id' => $id],['statusId' => $statusId]]);
         }
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('task|update', $request, $this->getMaxRetries());
+        $this->runUseCaseWithNoOfRetriesOnFail('task|update', $request, $this->getMaxRetries());
     }
 
     private function createLock($lockId)
     {
         $request = new Request(['id' => $lockId, 'creatingDateTime' => date('Y-m-d H:i:s')]);
-        $params = [
-            'useCaseString' => 'lock|create',
-            'request' => $request,
-            'processMaxRetryTimeBeforeContinue' => $this->getMaxRetries()
-        ];
-        $response = $this->executeLockUseCaseAndReturnResponse($params);
-        return $response;
+        $this->runUseCaseWithNoOfRetriesOnFail(
+            'lock|create',
+            $request,
+            $this->getMaxRetries()
+        );
+        $this->lastOperationSuccess = $this->getUseCaseResponseStatus() == Response::STATUS_SUCCESS;
     }
 
     private function deleteLock($id)
     {
-        $params['useCaseString'] = 'lock|delete';
-        $params['request'] = new Request(['id' => $id]);
-        $params['processMaxRetryTimeBeforeContinue'] = $this->getMaxRetries();
-        $this->executeLockUseCaseAndReturnResponse($params);
-    }
-
-    private function executeLockUseCaseAndReturnResponse($params)
-    {
-        $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
-            $params['useCaseString'],
-            $params['request'],
-            $params['processMaxRetryTimeBeforeContinue']
+        $this->runUseCaseWithNoOfRetriesOnFail(
+            'lock|delete',
+            new Request(['id' => $id]),
+            $this->getMaxRetries()
         );
-        return $response;
+        $this->lastOperationSuccess = $this->getUseCaseResponseStatus() == Response::STATUS_SUCCESS;
     }
 
     private function getMaxRetries()

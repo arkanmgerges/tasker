@@ -36,9 +36,9 @@ class ActTest extends BaseClass
             'creatingDateTime' => date('Y-m-d H:i:s')
         ]);
 
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|create', $request, 3);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|create', $request, 3);
         $actTask = new ActTask($info, $myObject, 2);
         $actTask->execute();
-        $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus('process|delete', $request, 3);
+        $this->runUseCaseWithNoOfRetriesOnFail('process|delete', $request, 3);
     }
 }

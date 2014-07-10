@@ -1,7 +1,6 @@
 <?php
 namespace Tasker\DataGateway\Repository;
 
-use Propel\Runtime\Propel;
 use Tasker\Boundary\Request;
 use Tasker\DataGateway\Db\Mapper\Factory as DbMapperFactory;
 use Tasker\DataGateway\Definition\LockRepositoryInterface;

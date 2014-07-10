@@ -14,6 +14,7 @@ class Arrange implements ArrangeInterface
 {
     use HelperTrait;
 
+    private $lastOperationSuccess = false;
     private $typeId = Task::TYPE_ID_STANDARD;
 
     /** @var Information $info */
@@ -38,13 +39,14 @@ class Arrange implements ArrangeInterface
 
     public function retrieve(ArrangePacket $arrangePacket)
     {
-        $response = $this->runUseCaseAndReturnResponse('task|retrieve', new Request(['id' => $arrangePacket->getId()]));
+        $this->executeUseCase('task|retrieve', new Request(['id' => $arrangePacket->getId()]));
+        $response = $this->getUseCaseResponse();
         return $response->getResult();
     }
 
     public function retrieveResponseByExternalTypeIdAndExternalId($externalTypeId, $externalId)
     {
-        $response = $this->runUseCaseAndReturnResponse(
+        $this->executeUseCase(
             'task|retrieve',
             new Request(
                 [
@@ -53,12 +55,13 @@ class Arrange implements ArrangeInterface
                 ]
             )
         );
+        $response = $this->getUseCaseResponse();
         return $response->getResult();
     }
 
     public function deleteByExternalTypeIdAndExternalId($externalTypeId, $externalId)
     {
-        $response = $this->runUseCaseAndReturnResponse(
+        $this->executeUseCase(
             'task|delete',
             new Request(
                 [
@@ -67,22 +70,27 @@ class Arrange implements ArrangeInterface
                 ]
             )
         );
-        return ($response->getStatus() == Response::STATUS_SUCCESS);
+        $this->lastOperationSuccess = $this->getUseCaseResponseStatus() == Response::STATUS_SUCCESS;
     }
 
     public function deleteByExternalTypeId($externalTypeId)
     {
-        $response = $this->runUseCaseAndReturnResponse(
+        $this->executeUseCase(
             'task|delete',
             new Request(['externalTypeId' => $externalTypeId,])
         );
-        return ($response->getStatus() == Response::STATUS_SUCCESS);
+        $this->lastOperationSuccess = $this->getUseCaseResponseStatus() == Response::STATUS_SUCCESS;
     }
 
     public function delete(ArrangePacket $arrangePacket)
     {
-        $response = $this->runUseCaseAndReturnResponse('task|delete', new Request(['id' => $arrangePacket->getId()]));
-        return ($response->getStatus() == Response::STATUS_SUCCESS);
+        $this->executeUseCase('task|delete', new Request(['id' => $arrangePacket->getId()]));
+        $this->lastOperationSuccess = $this->getUseCaseResponseStatus() == Response::STATUS_SUCCESS;
+    }
+
+    public function isLastOperationSucceeded()
+    {
+        return $this->lastOperationSuccess;
     }
 
     public function setPacket(ArrangePacket $arrangePacket, $forceOverwrite = false)
@@ -94,13 +102,14 @@ class Arrange implements ArrangeInterface
         // 1. Is it a unique mode ?
         if ($this->info->getArrangeMode() == ArrangeManager::ARRANGE_MODE_UNIQUE) {
             // 1.1 Lock the action arrange
-            $response = $this->createLock($lockId);
+            $this->createLock($lockId);
+            $response = $this->getUseCaseResponse();
             // 1.2 If it could not lock, then exit
             if (in_array(23000, $response->getCodes()) || $response->getStatus() == Response::STATUS_FAIL) {
-                return false;
+                $this->lastOperationSuccess = false;
             }
             // 1.3 Verify if there is another record that has the same type, id
-            $response = $this->retrieveTask($arrangePacket->getExternalId(), $arrangePacket->getExternalTypeId());
+            $response = $this->retrieveTaskResponseByIdAndType($arrangePacket->getExternalId(), $arrangePacket->getExternalTypeId());
             // 1.4 If it does exist, then delete the lock and exit
             if (($response->getStatus() == Response::STATUS_FAIL) ||
                 (
@@ -111,10 +120,9 @@ class Arrange implements ArrangeInterface
             ) {
                 // 1.4.1 Delete the lock and return
                 $this->deleteLock($lockId);
-                return false;
+                $this->lastOperationSuccess = false;
             }
 
-            $isSucceed = false;
             // 1.5 check overwrite
             if ($forceOverwrite) {
                 // 1.5.1 Retrieve task first
@@ -125,24 +133,23 @@ class Arrange implements ArrangeInterface
                 if (isset($tasks[0]) && !empty($tasks[0])) {
                     /** @var Task $task */
                     $task = $tasks[0];
-                    $isSucceed = $this->updateTask($task->getId(), $arrangePacket);
+                    $this->updateTask($task->getId(), $arrangePacket);
                 }
                 else {
-                    $isSucceed = $this->createTask($arrangePacket);
+                    $this->createTask($arrangePacket);
                 }
             }
             else {
                 // 1.5.2 Create task
-                $isSucceed = $this->createTask($arrangePacket);
+                $this->createTask($arrangePacket);
             }
 
             // 1.6 Delete the lock record
             $this->deleteLock($lockId);
-            return $isSucceed;
         }
         else {
             // 2. If the mode is repeatable, then create the task
-            return $this->createTask($arrangePacket);
+            $this->createTask($arrangePacket);
         }
     }
 
@@ -156,16 +163,16 @@ class Arrange implements ArrangeInterface
         }
         $data['creatingDateTime'] = date('Y-m-d H:i:s');
         $request = new Request($data);
-        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
-            'task|create',
+        $this->runUseCaseWithNoOfRetriesOnFail(
+            'task|createOverwriteByExternalTypeIdAndExternalId',
             $request,
             $this->getMaxRetries()
         );
 
-        if ($status == Response::STATUS_FAIL) {
-            return false;
+        if ($this->getUseCaseResponseStatus() == Response::STATUS_FAIL) {
+            $this->lastOperationSuccess = false;
         }
-        return true;
+        $this->lastOperationSuccess = true;
     }
 
     private function updateTask($id, ArrangePacket $arrangePacket)
@@ -183,34 +190,25 @@ class Arrange implements ArrangeInterface
                 $data
             ]
         );
-        $status = $this->runUseCaseWithNoOfRetriesOnFailAndReturnStatus(
+        $this->runUseCaseWithNoOfRetriesOnFail(
             'task|update',
             $request,
             $this->getMaxRetries()
         );
 
-        if ($status == Response::STATUS_FAIL) {
-            return false;
+        if ($this->getUseCaseResponseStatus() == Response::STATUS_FAIL) {
+            $this->lastOperationSuccess = false;
         }
-        return true;
+        $this->lastOperationSuccess = true;
     }
 
     private function deleteLock($lockId)
     {
-        $params['useCaseString'] = 'lock|delete';
-        $params['request'] = new Request(['id' => $lockId]);
-        $params['processMaxRetryTimeBeforeContinue'] = $this->getMaxRetries();
-        $this->executeLockUseCaseAndReturnResponse($params);
-    }
-
-    private function executeLockUseCaseAndReturnResponse($params)
-    {
-        $response = $this->runUseCaseWithNoOfRetriesOnFailAndReturnResponse(
-            $params['useCaseString'],
-            $params['request'],
-            $params['processMaxRetryTimeBeforeContinue']
+        $this->runUseCaseWithNoOfRetriesOnFail(
+            'lock|delete',
+            new Request(['id' => $lockId]),
+            $this->getMaxRetries()
         );
-        return $response;
     }
 
     private function getMaxRetries()
@@ -221,19 +219,16 @@ class Arrange implements ArrangeInterface
 
     private function createLock($lockId)
     {
-        $request = new Request(['id' => $lockId, 'creatingDateTime' => date('Y-m-d H:i:s')]);
-        $params = [
-            'useCaseString' => 'lock|create',
-            'request' => $request,
-            'processMaxRetryTimeBeforeContinue' => $this->getMaxRetries()
-        ];
-        $response = $this->executeLockUseCaseAndReturnResponse($params);
-        return $response;
+        $this->runUseCaseWithNoOfRetriesOnFail(
+            'lock|create',
+            new Request(['id' => $lockId, 'creatingDateTime' => date('Y-m-d H:i:s')]),
+            $this->getMaxRetries()
+        );
     }
 
-    private function retrieveTask($id, $type)
+    private function retrieveTaskResponseByIdAndType($id, $type)
     {
-        $response = $this->runUseCaseAndReturnResponse(
+        $this->executeUseCase(
             'task|retrieveOneUnEnded',
             new Request(
                 [
@@ -242,6 +237,6 @@ class Arrange implements ArrangeInterface
                 ]
             )
         );
-        return $response;
+        return $this->getUseCaseResponse();
     }
 }

@@ -19,9 +19,9 @@ class ArrangeCallbackOverwrite implements ArrangeCallbackInterface
         $packet->setRepeatingInterval(900); // Every 15 minutes
         $packet->setStartingDateTime(date('Y-m-d H:i:s'));
         $packet->setExternalData('test-' . mt_rand(0, 999999));
-
-        if ($caller->setPacket($packet, true)) {
-            // ok
+        $caller->setPacket($packet, true);
+        if ($caller->isLastOperationSucceeded()) {
+            // Ok
         }
     }
 }
