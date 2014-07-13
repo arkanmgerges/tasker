@@ -107,10 +107,11 @@ class Task extends DbAbstract implements TaskRepositoryInterface
     public function retrieveOneToProcess(Request $request)
     {
         $data = $request->getData();
+        $now  = date('Y-m-d H:i:s');
         $sql = 'SELECT task.* FROM :task: task LEFT JOIN :lock: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
                'AND (externalTypeId = "' . $data['externalTypeId'] . '") ' .
-               'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
+               'AND ((ADDDATE(startingDateTime, INTERVAL IFNULL(repeatingInterval, 0) SECOND)) < "' . $now . '") ' .
                'AND ((statusId != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
                'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
                'AND (server != "") ORDER BY priority DESC, modifyingDateTime '.
@@ -141,10 +142,11 @@ class Task extends DbAbstract implements TaskRepositoryInterface
 
     private function getTotalResultCountForRetrieveOneToProcess($params)
     {
+        $now  = date('Y-m-d H:i:s');
         $sql = 'SELECT task.* FROM :task: task LEFT JOIN :lock: tLock ON tLock.id = CONCAT_WS("-", "' .
                Act::ID_TYPE  . '", task.id) WHERE (tLock.id IS NULL) ' .
                'AND (externalTypeId = "' . $params['externalTypeId'] . '") ' .
-               'AND ((startingDateTime + IFNULL(repeatingInterval, 0)) < now()) ' .
+               'AND ((ADDDATE(startingDateTime, INTERVAL IFNULL(repeatingInterval, 0) SECOND)) < "' . $now . '") ' .
                'AND ((IFNULL(statusId, 0) != ' . TaskEntity::STATUS_ID_PROCESSING . ') ' .
                'AND (statusId != ' . TaskEntity::STATUS_ID_ENDED . ')) ' .
                'AND (server != "");';

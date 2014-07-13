@@ -96,6 +96,7 @@ class Arrange
 
     private function doJob()
     {
+        date_default_timezone_set('UTC');
         $info = new Information();
         // Save process to db
         $info->setProcessId(getmypid());

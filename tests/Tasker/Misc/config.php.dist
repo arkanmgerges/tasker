@@ -19,7 +19,13 @@ return [
         ],
         'process' => [
             'maxRetryTimeBeforeContinue' => {No. of retry time before continue to the next instruction}
-        ]
+        ],
+        'log' => [
+            'channelName'      => 'Animator',
+            'maxFilesRotation' => 10,
+            'baseDirectory'    => realpath(__DIR__ . '/log') . DIRECTORY_SEPARATOR,
+            'format'           => "[%datetime%] %channel%.%level_name%: %message%\n",
+        ],
     ],
     'production:base' => [],
     'beta:base' => [],
