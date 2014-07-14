@@ -46,6 +46,21 @@ class Tasker
         $this->actManager->setEnvironmentVariable($environmentVariable);
     }
 
+    public function setArrangeMaxProcesses($maxProcesses)
+    {
+        $this->arrangeManager->setMaxProcesses($maxProcesses);
+    }
+
+    public function setAssignMaxProcesses($maxProcesses)
+    {
+        $this->assignManager->setMaxProcesses($maxProcesses);
+    }
+
+    public function setActMaxProcesses($maxProcesses)
+    {
+        $this->actManager->setMaxProcesses($maxProcesses);
+    }
+
     public function setMaxProcesses($maxProcesses)
     {
         $this->arrangeManager->setMaxProcesses($maxProcesses);
