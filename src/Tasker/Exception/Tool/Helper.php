@@ -15,7 +15,9 @@ use Monolog\Formatter\LineFormatter;
  */
 class Helper
 {
-    protected static $config = null;
+    private static $config              = null;
+    private static $configPath          = null;
+    private static $environmentVariable = null;
 
     /**
      * Here it's using Monolog for writing logs
@@ -28,6 +30,10 @@ class Helper
     {
         $config = self::getConfig();
         $logger = new Logger($config['log']['channelName']);
+
+        if (!is_dir($config['log']['baseDirectory'])) {
+            mkdir($config['log']['baseDirectory'], 0777);
+        }
         $handler = new RotatingFileHandler(
             $config['log']['baseDirectory'] . 'messages.log',
             $config['log']['maxFilesRotation'],
@@ -41,19 +47,44 @@ class Helper
     }
 
     /**
+     * Set the environment variable that will be use to choose the configuration key
+     *
+     * @param string  $environmentVariable  Configuration key
+     *
+     * @return void
+     */
+    public static function setEnvironmentVariable($environmentVariable)
+    {
+        self::$environmentVariable = $environmentVariable;
+    }
+
+    /**
+     * Set the path to the configuration file
+     *
+     * @param string  $configPath  This is the configuration path to the file that contains application configuration
+     *
+     * @return void
+     */
+    public static function setConfigPath($configPath)
+    {
+        self::$configPath = $configPath;
+    }
+
+    /**
      * Get a general config to be parsed
      *
      * @return array
      */
     public static function getConfig()
     {
-        if (self::$config !== null)
+        if (self::$config !== null) {
             return self::$config;
+        }
 
-        $allConfigEnvs = include __DIR__ . '/../Config/config.php';
-        $env = getenv('APP_ENV') ?
-                   getenv('APP_ENV') :
-                   'production'; // Application environment
+        $allConfigEnvs = !empty(self::$configPath) ?
+            include self::$configPath : include __DIR__ . '/../Config/config.php';
+        $env = !empty(self::$environmentVariable)  ? getenv(self::$environmentVariable) : 'base';
+        $env = !empty($env) ? $env : 'base';
 
         self::$config = self::getConfigByEnv($env, $allConfigEnvs);
 

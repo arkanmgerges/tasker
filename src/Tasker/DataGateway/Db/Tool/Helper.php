@@ -50,7 +50,8 @@ class Helper
             return self::$config;
         }
 
-        $allConfigEnvs = !empty(self::$configPath) ? include self::$configPath : include __DIR__ . '/../Config/config.php';
+        $allConfigEnvs = !empty(self::$configPath) ?
+            include self::$configPath : include __DIR__ . '/../Config/config.php';
         $env = !empty(self::$environmentVariable)  ? getenv(self::$environmentVariable) : 'base';
         $env = !empty($env) ? $env : 'base';
 

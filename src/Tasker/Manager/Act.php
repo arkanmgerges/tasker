@@ -6,6 +6,7 @@ use Tasker\Manager\Definition\ActCallbackInterface;
 use Tasker\Task\Packet\Information;
 use Tasker\UseCase\Definition\HelperTrait;
 use Tasker\DataGateway\Db\Tool\Helper as HelperTool;
+use Tasker\Exception\Tool\Helper as ExceptionHelper;
 use Tasker\Task\Act as ActTask;
 
 class Act
@@ -33,11 +34,13 @@ class Act
     {
         $this->configPathString = $configPathString;
         HelperTool::setConfigPath($configPathString);
+        ExceptionHelper::setConfigPath($configPathString);
     }
 
     public function setEnvironmentVariable($environmentVariable = 'APP_ENV')
     {
         HelperTool::setEnvironmentVariable($environmentVariable);
+        ExceptionHelper::setEnvironmentVariable($environmentVariable);
     }
 
     public function registerCallbackObject(ActCallbackInterface $callback, $externalTypeId)

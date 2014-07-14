@@ -6,6 +6,7 @@ use Tasker\Manager\Definition\ArrangeCallbackInterface;
 use Tasker\Task\Packet\Information;
 use Tasker\UseCase\Definition\HelperTrait;
 use Tasker\DataGateway\Db\Tool\Helper as HelperTool;
+use Tasker\Exception\Tool\Helper as ExceptionHelper;
 use Tasker\Task\Arrange as ArrangeTask;
 
 class Arrange
@@ -48,11 +49,13 @@ class Arrange
     {
         $this->configPathString = $configPathString;
         HelperTool::setConfigPath($configPathString);
+        ExceptionHelper::setConfigPath($configPathString);
     }
 
     public function setEnvironmentVariable($environmentVariable = 'APP_ENV')
     {
         HelperTool::setEnvironmentVariable($environmentVariable);
+        ExceptionHelper::setEnvironmentVariable($environmentVariable);
     }
 
     public function registerCallbackObject(ArrangeCallbackInterface $callback)

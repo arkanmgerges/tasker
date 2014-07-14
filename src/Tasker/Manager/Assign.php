@@ -5,6 +5,7 @@ use Tasker\Boundary\Request;
 use Tasker\Task\Packet\Information;
 use Tasker\UseCase\Definition\HelperTrait;
 use Tasker\DataGateway\Db\Tool\Helper as HelperTool;
+use Tasker\Exception\Tool\Helper as ExceptionHelper;
 use Tasker\Task\Assign as AssignTask;
 
 class Assign
@@ -28,11 +29,13 @@ class Assign
     {
         $this->configPathString = $configPathString;
         HelperTool::setConfigPath($configPathString);
+        ExceptionHelper::setConfigPath($configPathString);
     }
 
     public function setEnvironmentVariable($environmentVariable = 'APP_ENV')
     {
         HelperTool::setEnvironmentVariable($environmentVariable);
+        ExceptionHelper::setEnvironmentVariable($environmentVariable);
     }
 
 

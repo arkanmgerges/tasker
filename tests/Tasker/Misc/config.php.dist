@@ -23,7 +23,8 @@ return [
         'log' => [
             'channelName'      => 'Animator',
             'maxFilesRotation' => 10,
-            'baseDirectory'    => realpath(__DIR__ . '/log') . DIRECTORY_SEPARATOR,
+            'baseDirectory'    => realpath(__DIR__ . DIRECTORY_SEPARATOR . '..')
+                                  . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR,
             'format'           => "[%datetime%] %channel%.%level_name%: %message%\n",
         ],
     ],
