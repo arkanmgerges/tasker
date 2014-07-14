@@ -49,7 +49,8 @@ class Assign
         $currentRunningProcessesCount = (int) $this->getCurrentRunningProcesses();
         $numberOfThreadsToCreate = $this->maxProcesses - $currentRunningProcessesCount;
         for ($i = 0; $i < $numberOfThreadsToCreate; $i++) {
-            switch ($pid = pcntl_fork()) {
+            $pid = pcntl_fork();
+            switch ($pid) {
                 case -1:
                     continue;
                     break;

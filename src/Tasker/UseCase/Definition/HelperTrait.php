@@ -61,6 +61,9 @@ trait HelperTrait
                 if ($remainingRetries > 0) {
                     sleep(1);
                 }
+                else {
+                    $loop = false;
+                }
             }
             else {
                 $loop = false;
