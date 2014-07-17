@@ -107,6 +107,7 @@ class Arrange implements ArrangeInterface
             // 1.2 If it could not lock, then exit
             if (in_array(23000, $response->getCodes()) || $response->getStatus() == Response::STATUS_FAIL) {
                 $this->lastOperationSuccess = false;
+                return;
             }
             // 1.3 Verify if there is another record that has the same type, id
             $response = $this->retrieveTaskResponseByIdAndType($arrangePacket->getExternalId(), $arrangePacket->getExternalTypeId());
@@ -121,6 +122,7 @@ class Arrange implements ArrangeInterface
                 // 1.4.1 Delete the lock and return
                 $this->deleteLock($lockId);
                 $this->lastOperationSuccess = false;
+                return;
             }
 
             // 1.5 check overwrite
