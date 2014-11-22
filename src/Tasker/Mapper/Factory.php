@@ -30,7 +30,7 @@ class Factory
             $namespacesAndClasses .= '\\' . ucfirst($namespaceOrClass);
         }
 
-        $classPath = 'Tasker\\DataGateway\\Db\\Mapper' . $namespacesAndClasses;
+        $classPath = 'Tasker\\Mapper' . $namespacesAndClasses;
         if (class_exists($classPath)) {
             return new $classPath();
         }
