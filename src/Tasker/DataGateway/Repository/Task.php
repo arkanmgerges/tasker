@@ -3,7 +3,7 @@ namespace Tasker\DataGateway\Repository;
 
 use Propel\Runtime\Propel;
 use Tasker\Boundary\Request;
-use Tasker\DataGateway\Db\Mapper\Factory as DbMapperFactory;
+use Tasker\Mapper\Factory as DbMapperFactory;
 use Tasker\DataGateway\Db\Tool\Helper;
 use Tasker\DataGateway\Definition\TaskRepositoryInterface;
 use Tasker\DataGateway\Db\Entity\TaskQuery;
@@ -38,7 +38,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
      */
     public function create(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($request->getData());
 
@@ -83,7 +83,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
             return;
         }
 
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($request->getData());
 
@@ -163,7 +163,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
     public function retrieve(Request $request)
     {
         $requestDataArray = $request->getData();
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($requestDataArray);
         $dbAttributesForQuery = $mapper->getMappedSecondAttributes();
@@ -221,7 +221,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
                 return $this->$method();
             }
         }
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $requestDataArray = $request->getData();
         $mapper->setArrays($requestDataArray);
@@ -242,7 +242,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
      */
     public function update(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($request->getDataByKey(0));
 
@@ -255,7 +255,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
         $dbEntity = $dbEntities[0];
 
         // Edit it
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper->setArrays($request->getDataByKey(1));
         $dbEntity->fromArray($mapper->getMappedSecondAttributes());
 
@@ -277,7 +277,7 @@ class Task extends DbAbstract implements TaskRepositoryInterface
      */
     public function delete(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Task\Entity $mapper */
+        /** @var \Tasker\Mapper\Task\Entity $mapper */
         $mapper = DbMapperFactory::make('task|entity');
         $mapper->setArrays($request->getData());
 

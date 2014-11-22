@@ -1,7 +1,6 @@
 <?php
 namespace Tasker\DataGateway\Repository\Definition;
 
-use Propel\Runtime\Propel;
 use Tasker\Boundary\Request;
 
 /**

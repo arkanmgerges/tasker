@@ -2,7 +2,7 @@
 namespace Tasker\DataGateway\Repository;
 
 use Tasker\Boundary\Request;
-use Tasker\DataGateway\Db\Mapper\Factory as DbMapperFactory;
+use Tasker\Mapper\Factory as DbMapperFactory;
 use Tasker\DataGateway\Definition\ProcessRepositoryInterface;
 use Tasker\DataGateway\Db\Entity\ProcessQuery;
 use Tasker\DataGateway\Repository\Definition\DbAbstract;
@@ -31,7 +31,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
      */
     public function create(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper = DbMapperFactory::make('process|entity');
         $mapper->setArrays($request->getData());
 
@@ -58,7 +58,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
      */
     public function retrieve(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper = DbMapperFactory::make('process|entity');
         $requestDataArray = $request->getData();
         $mapper->setArrays($requestDataArray);
@@ -123,7 +123,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
      */
     public function getTotalResultCount(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper = DbMapperFactory::make('process|entity');
         $requestDataArray = $request->getData();
         $mapper->setArrays($requestDataArray);
@@ -144,7 +144,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
      */
     public function update(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper = DbMapperFactory::make('process|entity');
         $mapper->setArrays($request->getDataByKey(0));
 
@@ -157,7 +157,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
         $dbEntity = $dbEntities[0];
 
         // Edit it
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper->setArrays($request->getDataByKey(1));
         $dbEntity->fromArray($mapper->getMappedSecondAttributes());
 
@@ -179,7 +179,7 @@ class Process extends DbAbstract implements ProcessRepositoryInterface
      */
     public function delete(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Process\Entity $mapper */
+        /** @var \Tasker\Mapper\Process\Entity $mapper */
         $mapper = DbMapperFactory::make('process|entity');
         $mapper->setArrays($request->getData());
 

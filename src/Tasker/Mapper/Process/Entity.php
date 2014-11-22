@@ -1,7 +1,7 @@
 <?php
-namespace Tasker\DataGateway\Db\Mapper\Lock;
+namespace Tasker\Mapper\Process;
 
-use Tasker\DataGateway\Db\Mapper\Definition\CommonEntityMapperAbstract;
+use Tasker\Mapper\Definition\CommonEntityMapperAbstract;
 
 /**
  * Mapper class for the action entity
@@ -16,11 +16,11 @@ class Entity extends CommonEntityMapperAbstract
     /**
      * @var string  $dbEntityName  Entity object that represents the current db entity in the orm
      */
-    private $dbEntityName = 'Lock';
+    private $dbEntityName = 'Process';
     /**
      * @var string  $entityName  Entity object that does not have any dependency
      */
-    private $entityName   = 'Lock';
+    private $entityName   = 'Process';
 
 
     /**
@@ -28,6 +28,8 @@ class Entity extends CommonEntityMapperAbstract
      */
     private $mappingEntityToDbEntityAttributes = [
         'id'               => 'Id',
+        'server'           => 'Server',
+        'extra'            => 'Extra',
         'creatingDateTime' => 'CreatingDateTime',
     ];
 

@@ -1,7 +1,7 @@
 <?php
-namespace Tasker\DataGateway\Db\Mapper\Task\Pdo;
+namespace Tasker\Mapper\Task\Pdo;
 
-use Tasker\DataGateway\Db\Mapper\Definition\CommonEntityMapperAbstract;
+use Tasker\Mapper\Definition\CommonEntityMapperAbstract;
 
 /**
  * Mapper class for the action entity

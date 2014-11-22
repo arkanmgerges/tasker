@@ -1,5 +1,5 @@
 <?php
-namespace Tasker\DataGateway\Db\Mapper;
+namespace Tasker\Mapper;
 
 use Tasker\DataGateway\Db\Exception\DbMapperNotFound;
 
@@ -20,7 +20,7 @@ class Factory
      *
      * @throws DbMapperNotFound If db class can not be found
      *
-     * @return \Tasker\DataGateway\Db\Mapper\Definition\CommonEntityMapperAbstract Created mapper
+     * @return \Tasker\Mapper\Definition\CommonEntityMapperAbstract Created mapper
      */
     public static function make($mapperClassName)
     {

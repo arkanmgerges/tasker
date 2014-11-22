@@ -1,7 +1,7 @@
 <?php
-namespace Tasker\DataGateway\Db\Mapper\Definition;
+namespace Tasker\Mapper\Definition;
 
-use MultiTierArchitecture\DataGateway\Mapper\Definition\EntityMapperAbstract;
+use MultiTierArchitecture\Mapper\Definition\EntityMapperAbstract;
 use Tasker\Entity\Factory;
 
 /**

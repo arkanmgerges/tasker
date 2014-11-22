@@ -2,7 +2,7 @@
 namespace Tasker\DataGateway\Repository;
 
 use Tasker\Boundary\Request;
-use Tasker\DataGateway\Db\Mapper\Factory as DbMapperFactory;
+use Tasker\Mapper\Factory as DbMapperFactory;
 use Tasker\DataGateway\Definition\LockRepositoryInterface;
 use Tasker\DataGateway\Db\Entity\LockQuery;
 use Tasker\DataGateway\Repository\Definition\DbAbstract;
@@ -31,7 +31,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
      */
     public function create(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper = DbMapperFactory::make('lock|entity');
         $mapper->setArrays($request->getData());
 
@@ -57,7 +57,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
      */
     public function retrieve(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper = DbMapperFactory::make('lock|entity');
         $requestDataArray = $request->getData();
         $mapper->setArrays($requestDataArray);
@@ -122,7 +122,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
      */
     public function getTotalResultCount(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper = DbMapperFactory::make('lock|entity');
         $requestDataArray = $request->getData();
         $mapper->setArrays($requestDataArray);
@@ -143,7 +143,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
      */
     public function update(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper = DbMapperFactory::make('lock|entity');
         $mapper->setArrays($request->getDataByKey(0));
 
@@ -156,7 +156,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
         $dbEntity = $dbEntities[0];
 
         // Edit it
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper->setArrays($request->getDataByKey(1));
         $dbEntity->fromArray($mapper->getMappedSecondAttributes());
 
@@ -178,7 +178,7 @@ class Lock extends DbAbstract implements LockRepositoryInterface
      */
     public function delete(Request $request)
     {
-        /** @var \Tasker\DataGateway\Db\Mapper\Lock\Entity $mapper */
+        /** @var \Tasker\Mapper\Lock\Entity $mapper */
         $mapper = DbMapperFactory::make('lock|entity');
         $mapper->setArrays($request->getData());
 
